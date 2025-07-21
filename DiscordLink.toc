@@ -1,0 +1,8 @@
+## Interface: 50500
+## Title: DiscordLink
+## Notes: Envoie votre lien d'invitation Discord dans votre groupe.
+## Author: Vodoxiss#2779
+## Version: 1.0
+## SavedVariables: DidiSaved
+
+DiscordLink.lua
