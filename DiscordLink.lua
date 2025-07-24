@@ -5,7 +5,7 @@ local cooldownTimeRemaining
 
 local L = {
     fr = {
-        TITLE = "DiscordLink V2.0",
+        TITLE = "|cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r",
         DESCRIPTION = "Lien Discord à partager dans le groupe",
         BUTTON = "Enregistrer",
         LABEL = "Lien Discord :",
@@ -15,10 +15,16 @@ local L = {
         ENABLE_INTERCOM = "Activer l’intercom",
         INVALID_LINK = "Le lien doit commencer par https://discord.gg/ ou https://discord.com/invite/",
         LANGUAGE = "Langue",
-        LINK_UPDATED = "Lien mis à jour."
+        LINK_UPDATED = "Lien mis à jour.",
+        INTERCOM_TITLE = "%s partage un lien Discord :",
+        HELP_TITLE = "Commandes disponibles :",
+        HELP_LINE_UI = "/didiui - Ouvre le menu de configuration",
+        HELP_LINE_SEND = "/didi - Envoie le lien Discord dans le chat de groupe",
+        HELP_LINE_SET = "/didi set <lien> - Définit un nouveau lien Discord",
+        HELP_LINE_HELP = "/didi help - Affiche cette aide"
     },
     en = {
-        TITLE = "DiscordLink V2.0",
+        TITLE = "|cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r",
         DESCRIPTION = "Discord link to share in group",
         BUTTON = "Save",
         LABEL = "Discord Link:",
@@ -28,10 +34,16 @@ local L = {
         ENABLE_INTERCOM = "Enable intercom",
         INVALID_LINK = "Link must start with https://discord.gg/ or https://discord.com/invite/",
         LANGUAGE = "Language",
-        LINK_UPDATED = "Link updated."
+        LINK_UPDATED = "Link updated.",
+        INTERCOM_TITLE = "%s shared a Discord link:",
+        HELP_TITLE = "Available commands:",
+        HELP_LINE_UI = "/didiui - Opens the configuration menu",
+        HELP_LINE_SEND = "/didi - Sends the Discord link to the group chat",
+        HELP_LINE_SET = "/didi set <link> - Sets a new Discord link",
+        HELP_LINE_HELP = "/didi help - Shows this help"
     },
     es = {
-        TITLE = "DiscordLink V2.0",
+        TITLE = "|cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r",
         DESCRIPTION = "Enlace de Discord para compartir con el grupo",
         BUTTON = "Guardar",
         LABEL = "Enlace de Discord:",
@@ -41,10 +53,16 @@ local L = {
         ENABLE_INTERCOM = "Activar intercomunicador",
         INVALID_LINK = "El enlace debe comenzar con https://discord.gg/ o https://discord.com/invite/",
         LANGUAGE = "Idioma",
-        LINK_UPDATED = "Enlace actualizado."
+        LINK_UPDATED = "Enlace actualizado.",
+        INTERCOM_TITLE = "%s compartió un enlace de Discord:",
+        HELP_TITLE = "Comandos disponibles:",
+        HELP_LINE_UI = "/didiui - Abre el menú de configuración",
+        HELP_LINE_SEND = "/didi - Envía el enlace de Discord al chat del grupo",
+        HELP_LINE_SET = "/didi set <enlace> - Define un nuevo enlace de Discord",
+        HELP_LINE_HELP = "/didi help - Muestra esta ayuda"
     },
     de = {
-        TITLE = "DiscordLink V2.0",
+        TITLE = "|cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r",
         DESCRIPTION = "Discord-Link zur Freigabe in der Gruppe",
         BUTTON = "Speichern",
         LABEL = "Discord-Link:",
@@ -54,10 +72,16 @@ local L = {
         ENABLE_INTERCOM = "Intercom aktivieren",
         INVALID_LINK = "Der Link muss mit https://discord.gg/ oder https://discord.com/invite/ beginnen.",
         LANGUAGE = "Sprache",
-        LINK_UPDATED = "Link aktualisiert."
+        LINK_UPDATED = "Link aktualisiert.",
+        INTERCOM_TITLE = "%s hat einen Discord-Link geteilt:",
+        HELP_TITLE = "Verfügbare Befehle:",
+        HELP_LINE_UI = "/didiui - Öffnet das Konfigurationsmenü",
+        HELP_LINE_SEND = "/didi - Sendet den Discord-Link in den Gruppenchat",
+        HELP_LINE_SET = "/didi set <link> - Setzt einen neuen Discord-Link",
+        HELP_LINE_HELP = "/didi help - Zeigt diese Hilfe an"
     },
     ru = {
-        TITLE = "DiscordLink V2.0",
+        TITLE = "|cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r",
         DESCRIPTION = "Ссылка Discord для группы",
         BUTTON = "Сохранить",
         LABEL = "Ссылка Discord:",
@@ -67,7 +91,13 @@ local L = {
         ENABLE_INTERCOM = "Включить интерком",
         INVALID_LINK = "Ссылка должна начинаться с https://discord.gg/ или https://discord.com/invite/",
         LANGUAGE = "Язык",
-        LINK_UPDATED = "Ссылка обновлена."
+        LINK_UPDATED = "Ссылка обновлена.",
+        INTERCOM_TITLE = "%s поделился ссылкой на Discord:",
+        HELP_TITLE = "Доступные команды:",
+        HELP_LINE_UI = "/didiui - Открывает меню настроек",
+        HELP_LINE_SEND = "/didi - Отправляет ссылку Discord в чат группы",
+        HELP_LINE_SET = "/didi set <ссылка> - Устанавливает новую ссылку Discord",
+        HELP_LINE_HELP = "/didi help - Показывает эту справку"
     }
 }
 
@@ -180,42 +210,69 @@ f:SetScript("OnEvent", function(self, event, ...)
 
         CreateUI()
 
-        SLASH_DIDI1 = "/didi"
-        SlashCmdList["DIDI"] = function()
-            local now = time()
-            local lang = DidiSaved.language or "fr"
-            local link = DidiSaved.discordLink or ""
-            local remaining = DIDI_COOLDOWN - (now - lastSentTime)
+SLASH_DIDI1 = "/didi"
+SlashCmdList["DIDI"] = function(msg)
+    local lang = DidiSaved.language or "fr"
+    local args = {}
+    for word in msg:gmatch("%S+") do
+        table.insert(args, word)
+    end
+    local command = args[1] and args[1]:lower()
+    local link = args[2]
 
-            if remaining > 0 then
-                print("|cffff0000[DiscordLink]|r " .. string.format(L[lang].COOLDOWN_WAIT, remaining))
-                cooldownTimeRemaining = remaining
-                cooldownFrame:Show()
-                return
-            end
+    if command == "help" then
+        print("|cFF5865F2DiscordLink|r " .. L[lang].HELP_TITLE)
+        print(" - " .. L[lang].HELP_LINE_UI)
+        print(" - " .. L[lang].HELP_LINE_SEND)
+        print(" - " .. L[lang].HELP_LINE_SET)
+        print(" - " .. L[lang].HELP_LINE_HELP)
+        return
+    end
 
-            if not IsValidDiscordLink(link) then
-                print("|cffff0000[DiscordLink]|r " .. L[lang].INVALID_LINK)
-                return
-            end
-
-            lastSentTime = now
-            local message = L[lang].GROUP_LINK_MESSAGE .. link
-
-            if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
-                SendChatMessage(message, "INSTANCE_CHAT")
-            elseif IsInRaid() then
-                SendChatMessage(message, "RAID")
-            elseif IsInGroup() then
-                SendChatMessage(message, "PARTY")
-            else
-                print("|cffff0000[DiscordLink]|r " .. L[lang].NOT_IN_GROUP .. link)
-            end
-
-            if DidiSaved.intercomEnabled and (IsInGroup() or IsInRaid()) then
-                C_ChatInfo.SendAddonMessage(DIDI_PREFIX, link, "RAID")
-            end
+    if command == "set" and link then
+        if IsValidDiscordLink(link) then
+            DidiSaved.discordLink = link
+            print("|cff00ff00[DiscordLink]|r " .. L[lang].LINK_UPDATED)
+        else
+            print("|cffff0000[DiscordLink]|r " .. L[lang].INVALID_LINK)
         end
+        return
+    end
+
+    -- Code existant de cooldown / envoi
+    local now = time()
+    local savedLink = DidiSaved.discordLink or ""
+    local remaining = DIDI_COOLDOWN - (now - lastSentTime)
+
+    if remaining > 0 then
+        print("|cffff0000[DiscordLink]|r " .. string.format(L[lang].COOLDOWN_WAIT, remaining))
+        cooldownTimeRemaining = remaining
+        cooldownFrame:Show()
+        return
+    end
+
+    if not IsValidDiscordLink(savedLink) then
+        print("|cffff0000[DiscordLink]|r " .. L[lang].INVALID_LINK)
+        return
+    end
+
+    lastSentTime = now
+    local message = L[lang].GROUP_LINK_MESSAGE .. savedLink
+
+    if IsInGroup(LE_PARTY_CATEGORY_INSTANCE) then
+        SendChatMessage(message, "INSTANCE_CHAT")
+    elseif IsInRaid() then
+        SendChatMessage(message, "RAID")
+    elseif IsInGroup() then
+        SendChatMessage(message, "PARTY")
+    else
+        print("|cffff0000[DiscordLink]|r " .. L[lang].NOT_IN_GROUP .. savedLink)
+    end
+
+    if DidiSaved.intercomEnabled and (IsInGroup() or IsInRaid()) then
+        C_ChatInfo.SendAddonMessage(DIDI_PREFIX, savedLink, "RAID")
+    end
+end
 
         SLASH_DIDIUI1 = "/didiui"
         SlashCmdList["DIDIUI"] = function()
@@ -276,7 +333,10 @@ f:SetScript("OnEvent", function(self, event, ...)
             print("|cff00ff00[DiscordLink]|r " .. sender .. " : " .. L[lang].GROUP_LINK_MESSAGE .. message)
 
             if DidiSaved.intercomEnabled then
-                intercomAlert.title:SetText(sender .. " partage un lien Discord :")
+                local titleText = L[lang] and L[lang].INTERCOM_TITLE and string.format(L[lang].INTERCOM_TITLE, sender)
+                    or (sender .. " shared a Discord link:")
+
+                intercomAlert.title:SetText(titleText)
                 intercomAlert.link:SetText("|cff00ccff" .. message .. "|r")
                 intercomAlert:Show()
 
