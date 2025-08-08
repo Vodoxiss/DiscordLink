@@ -1,8 +1,8 @@
 ## Interface: 50500
-## Title: |cFF5865F2DiscordLink|r |cff00ff96Version 2.1|r
+## Title: |cFF5865F2DiscordLink|r |cff00ff96Version 2.2|r
 ## Notes: Save and share your |cFF5865F2Discord|r invitation link directly to your group.
 ## Author: Vodoxiss#2779
-## Version: 2.1
+## Version: 2.2
 ## SavedVariables: DidiSaved
 
 DiscordLink.lua
